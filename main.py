@@ -57,7 +57,8 @@ def p_program(p):
     pass
 
 def p_statement_if(p):
-    '''statement : LPAREN IF condition statement statement RPAREN'''
+    '''statement : LPAREN IF condition statement statement RPAREN 
+                    | LPAREN IF condition statement RPAREN '''
     pass
 
 def p_statement_while(p):
@@ -89,6 +90,8 @@ def p_operator(p):
 
 # Error rule for syntax errors
 def p_error(p):
+    global syntax_error
+    syntax_error = True;
     if p:
         print(f"Syntax error at '{p.value}'")
     else:
@@ -109,8 +112,19 @@ code_samples = [
     "(setq (+ x 10))"                          # Invalid assignment
 ]
 
+def parse_input(code):
+    global syntax_error
+    syntax_error = False
+
+    parser.parse(code)
+    if syntax_error:
+        print("Rejected")
+    else:
+        print("Accepted")
+
 # Test each code sample
 for i, code in enumerate(code_samples, start=1):
+    syntax_error = False
     print(f"\n--- Sample {i} ---")
     print("Code:", code)
 
@@ -124,8 +138,4 @@ for i, code in enumerate(code_samples, start=1):
 
     # Parse the input
     print("\nParsing Result:")
-    result = parser.parse(code)
-    if result is None:
-        print("Accepted")
-    else:
-        print("Rejected")
+    parse_input(code)   
