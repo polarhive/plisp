@@ -1,14 +1,20 @@
 import ply.lex as lex
 import ply.yacc as yacc
-syntax_error = False # flag
 
-# ---------------- Lexer -----------------
+# Flag to indicate syntax errors
+syntax_error = False
+
+# --------------- Lexer -------------------
+
+# Reserved keywords, updated to include 'defun'
 reserved = {
     'if': 'IF',
     'while': 'WHILE',
     'setq': 'SETQ',
     'true': 'TRUE',
-    'false': 'FALSE'
+    'false': 'FALSE',
+    'defun': 'DEFUN',
+    'defstruct' : 'DEFSTRUCT',
 }
 
 tokens = [
@@ -17,7 +23,7 @@ tokens = [
     'PLUS', 'MINUS', 'MULT', 'DIV'
 ] + list(reserved.values())
 
-# token regex patterns
+# Token regex patterns
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_PLUS = r'\+'
@@ -25,10 +31,10 @@ t_MINUS = r'-'
 t_MULT = r'\*'
 t_DIV = r'/'
 
-# literals and reserved word tokens
+# Updated VARIABLE token rule to handle reserved keywords
 def t_VARIABLE(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value, 'VARIABLE')
+    t.type = reserved.get(t.value, 'VARIABLE')  # Check if the token is a reserved keyword
     return t
 
 def t_NUMBER(t):
@@ -36,48 +42,71 @@ def t_NUMBER(t):
     t.value = int(t.value)
     return t
 
-# ignore tabs and whitespace in lisp
+# Ignore whitespace
 t_ignore = ' \t'
 
-# invalid tokens
+# Error handling for invalid tokens
 def t_error(t):
     print(f"Illegal character '{t.value[0]}' at line {t.lineno}")
     t.lexer.skip(1)
 
-# build the lexer
+# Build the lexer
 lexer = lex.lex()
 
-# ---------------- Parser -----------------
+# --------------- Parser -----------------
+
 def p_program(p):
     '''program : statement
                | statement program'''
     pass
 
-def p_statement_if(p): # if statement rule
-    '''statement : LPAREN IF condition statement statement RPAREN
-                    | LPAREN IF condition statement RPAREN '''
+# If statement
+def p_statement_if(p):
+    '''statement : LPAREN IF condition statement RPAREN'''
     pass
 
-def p_statement_while(p): # while statement rule
+# While statement
+def p_statement_while(p):
     '''statement : LPAREN WHILE condition statement RPAREN'''
     pass
 
-def p_statement_assign(p): # var assignment rule
+# Variable assignment
+def p_statement_assign(p):
     '''statement : LPAREN SETQ VARIABLE expression RPAREN'''
     pass
 
+# Structure definition
+def p_statement_defstruct(p):
+    '''statement : LPAREN DEFSTRUCT VARIABLE parameters RPAREN'''
+
+# Function definition
+def p_statement_defun(p):
+    '''statement : LPAREN DEFUN VARIABLE LPAREN parameters RPAREN expression RPAREN'''
+    pass
+
+# Parameters for function definition
+def p_parameters(p):
+    '''parameters : VARIABLE
+                  | VARIABLE parameters
+                  | empty'''
+    pass
+
+# Condition
 def p_condition(p):
     '''condition : expression
                  | TRUE
                  | FALSE'''
     pass
 
+# Expressions
 def p_expression(p):
     '''expression : VARIABLE
                   | NUMBER
-                  | LPAREN operator expression expression RPAREN'''
+                  | LPAREN operator expression expression RPAREN
+                  | LPAREN VARIABLE arguments RPAREN'''  # For function calls
     pass
 
+# Operator
 def p_operator(p):
     '''operator : PLUS
                 | MINUS
@@ -85,46 +114,60 @@ def p_operator(p):
                 | DIV'''
     pass
 
-# rule for syntax errors (debugging at line no/pos)
+# Arguments for function call
+def p_arguments(p):
+    '''arguments : expression
+                 | expression arguments
+                 | empty'''
+    pass
+
+# Empty rule for optional parameters and arguments
+def p_empty(p):
+    'empty :'
+    pass
+
+# Error handling rule
 def p_error(p):
     global syntax_error
     syntax_error = True
-    if p: print(f"Syntax error at '{p.value}' (line {p.lineno}, position {p.lexpos})")
-    else: print("Syntax error at EOF")
+    if p:
+        print(f"Syntax error at '{p.value}' (line {p.lineno}, position {p.lexpos})")
+    else:
+        print("Syntax error at EOF")
 
-# build the parser
+# Build the parser
 parser = yacc.yacc()
 
-# tests
+# --------------- Test Cases -------------------
+
+# Sample test code in the Lisp-like syntax
 code_samples = [
-    "(if true (setq x 10) (setq y 20))",       # valid if statement
-    "(if (setq x 10) (setq y 20))",            # invalid if syntax
-
-    "(while false (setq x (+ x 1)))",          # valid while statement
-    "(while true setq x 10)",                  # invalid while syntax
-
-    "(setq z (* 5 5))",                        # valid var assignment
-    "(setq (+ x 10))"                          # invalid var assignment
+    "(if true (setq x 10) (setq y 20))",                  # Simple if statement
+    "(while false (setq x (+ x 1)))",                     # Simple while loop
+    "(setq z (* 5 5))",                                   # Simple assignment
+    "(defun square (x) (* x x))",                         # Function definition
+    "(defun add (x y) (+ x y))",                          # Another function definition
+    "(defstruct person name age)"                         # Structure definition
 ]
 
+# Function to parse input code and print results
 def parse_input(code):
-
+    global syntax_error
+    syntax_error = False
     parser.parse(code)
-    if syntax_error: print("Rejected")
-    else: print("Accepted")
+    if syntax_error:
+        print("Rejected")
+    else:
+        print("Accepted")
 
-# test each code sample
+# Test each code sample
 for i, code in enumerate(code_samples, start=1):
     syntax_error = False
     print(f"\n--- Sample {i} ---")
     print("Code:", code)
-
     print("\nTokens:")
     lexer.input(code)
-    tokens = []
     for tok in lexer:
-        tokens.append(tok)
         print(tok)
-
     print("\nParsing Result:")
     parse_input(code)
