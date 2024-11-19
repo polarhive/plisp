@@ -142,12 +142,24 @@ parser = yacc.yacc()
 
 # Sample test code in the Lisp-like syntax
 code_samples = [
-    "(if true (setq x 10) (setq y 20))",                  # Simple if statement
-    "(while false (setq x (+ x 1)))",                     # Simple while loop
-    "(setq z (* 5 5))",                                   # Simple assignment
-    "(defun square (x) (* x x))",                         # Function definition
-    "(defun add (x y) (+ x y))",                          # Another function definition
-    "(defstruct person name age)"                         # Structure definition
+    # If Statements
+    "(if true (setq x 10) (setq y 20))",  # Simple if statement
+    "(if true (setq x 10) (setq))",  # Invalid if statement (missing second argument for setq)
+    "(if (setq x 10) (setq y 20))",  # Invalid if statement (missing else branch)
+    "(while false (setq x (+ x 1)))",  # Simple while loop
+    "(while x (setq y (+ y 1)))",  # Invalid while loop condition (should be a boolean expression)
+    "(while true (setq a (+ a 2) (setq b 10)))",  # Invalid while loop (incorrect parentheses in setq)
+    "(setq z (* 5 5))",  # Simple assignment
+    "(setq x (+ 5))",  # Invalid assignment (missing second operand in the addition)
+    "(defun square (x) (* x x))",  # Function definition
+    "(defun add (x y) (+ x y))",  # Another valid function definition
+    "(defun square () (+ x x))",  # Invalid function definition (missing parameter for square)
+    "(defun multiply (x y) (+ x))",  # Invalid function definition (missing second operand in addition)
+    "(defun add (x) (+ x y))",  # Invalid function definition (using undefined variable y)
+    "(defstruct person name age)",  # Structure definition
+    "(defstruct car model year)",  # Another valid structure definition
+    "(defstruct person age)",  # Invalid structure definition (missing name parameter)
+    "(defstruct car make)",  # Invalid structure definition (missing additional fields like model or year)
 ]
 
 # Function to parse input code and print results
