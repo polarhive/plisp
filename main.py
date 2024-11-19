@@ -8,57 +8,71 @@ syntax_error = False
 
 # Reserved keywords, updated to include 'defun'
 reserved = {
-    'if': 'IF',
-    'while': 'WHILE',
-    'setq': 'SETQ',
-    'true': 'TRUE',
-    'false': 'FALSE',
-    'defun': 'DEFUN',
-    'defstruct' : 'DEFSTRUCT',
+    "if": "IF",
+    "while": "WHILE",
+    "setq": "SETQ",
+    "true": "TRUE",
+    "false": "FALSE",
+    "defun": "DEFUN",
+    "defstruct": "DEFSTRUCT",
 }
 
 tokens = [
-    'LPAREN', 'RPAREN',
-    'NUMBER', 'VARIABLE',
-    'PLUS', 'MINUS', 'MULT', 'DIV'
+    "LPAREN",
+    "RPAREN",
+    "NUMBER",
+    "VARIABLE",
+    "PLUS",
+    "MINUS",
+    "MULT",
+    "DIV",
 ] + list(reserved.values())
 
 # Token regex patterns
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_PLUS = r'\+'
-t_MINUS = r'-'
-t_MULT = r'\*'
-t_DIV = r'/'
+t_LPAREN = r"\("
+t_RPAREN = r"\)"
+t_PLUS = r"\+"
+t_MINUS = r"-"
+t_MULT = r"\*"
+t_DIV = r"/"
+
 
 # Updated VARIABLE token rule to handle reserved keywords
 def t_VARIABLE(t):
-    r'[a-zA-Z_][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value, 'VARIABLE')  # Check if the token is a reserved keyword
+    r"[a-zA-Z_][a-zA-Z_0-9]*"
+    t.type = reserved.get(
+        t.value, "VARIABLE"
+    )  # Check if the token is a reserved keyword
     return t
 
+
 def t_NUMBER(t):
-    r'\d+'
+    r"\d+"
     t.value = int(t.value)
     return t
 
+
 # Ignore whitespace
-t_ignore = ' \t'
+t_ignore = " \t"
+
 
 # Error handling for invalid tokens
 def t_error(t):
     print(f"Illegal character '{t.value[0]}' at line {t.lineno}")
     t.lexer.skip(1)
 
+
 # Build the lexer
 lexer = lex.lex()
 
 # --------------- Parser -----------------
 
+
 def p_program(p):
-    '''program : statement
-               | statement program'''
+    """program : statement
+    | statement program"""
     pass
+
 
 # If statement
 def p_statement_if(p):
@@ -75,22 +89,26 @@ def p_statements(p):
 
 # While statement
 def p_statement_while(p):
-    '''statement : LPAREN WHILE condition statement RPAREN'''
+    """statement : LPAREN WHILE condition statement RPAREN"""
     pass
+
 
 # Variable assignment
 def p_statement_assign(p):
-    '''statement : LPAREN SETQ VARIABLE expression RPAREN'''
+    """statement : LPAREN SETQ VARIABLE expression RPAREN"""
     pass
+
 
 # Structure definition
 def p_statement_defstruct(p):
-    '''statement : LPAREN DEFSTRUCT VARIABLE parameters RPAREN'''
+    """statement : LPAREN DEFSTRUCT VARIABLE parameters RPAREN"""
+
 
 # Function definition
 def p_statement_defun(p):
-    '''statement : LPAREN DEFUN VARIABLE LPAREN parameters RPAREN expression RPAREN'''
+    """statement : LPAREN DEFUN VARIABLE LPAREN parameters RPAREN expression RPAREN"""
     pass
+
 
 # Parameters for function definition
 def p_parameters(p):
@@ -105,9 +123,9 @@ def p_parameters_tail(p):
 
 # Condition
 def p_condition(p):
-    '''condition : expression
-                 | TRUE
-                 | FALSE'''
+    """condition : expression
+    | TRUE
+    | FALSE"""
     pass
 
 
@@ -120,13 +138,15 @@ def p_expression(p):
     | LPAREN VARIABLE arguments RPAREN"""
     pass
 
+
 # Operator
 def p_operator(p):
-    '''operator : PLUS
-                | MINUS
-                | MULT
-                | DIV'''
+    """operator : PLUS
+    | MINUS
+    | MULT
+    | DIV"""
     pass
+
 
 # Arguments for function call
 def p_arguments(p):
@@ -141,7 +161,7 @@ def p_arguments_tail(p):
 
 # Empty rule for optional parameters and arguments
 def p_empty(p):
-    'empty :'
+    "empty :"
     pass
 
 
@@ -174,6 +194,7 @@ code_samples = [
     "(defstruct)",  # Invalid Structure definition
 ]
 
+
 # Function to parse input code and print results
 def parse_input(code):
     global syntax_error
@@ -183,6 +204,7 @@ def parse_input(code):
         print("Rejected")
     else:
         print("Accepted")
+
 
 # Test each code sample
 for i, code in enumerate(code_samples, start=1):
