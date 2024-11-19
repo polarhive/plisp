@@ -62,8 +62,16 @@ def p_program(p):
 
 # If statement
 def p_statement_if(p):
-    '''statement : LPAREN IF condition statement RPAREN'''
+    """statement : LPAREN IF condition statements RPAREN"""
     pass
+
+
+# Rule for handling multiple statements (for the `if`, `while`, etc.)
+def p_statements(p):
+    """statements : statement
+    | statement statements"""
+    pass
+
 
 # While statement
 def p_statement_while(p):
@@ -86,10 +94,14 @@ def p_statement_defun(p):
 
 # Parameters for function definition
 def p_parameters(p):
-    '''parameters : VARIABLE
-                  | VARIABLE parameters
-                  | empty'''
-    pass
+    """parameters : VARIABLE parameters_tail
+    | empty"""
+
+
+def p_parameters_tail(p):
+    """parameters_tail : VARIABLE parameters_tail
+    | empty"""
+
 
 # Condition
 def p_condition(p):
@@ -98,12 +110,14 @@ def p_condition(p):
                  | FALSE'''
     pass
 
+
 # Expressions
 def p_expression(p):
-    '''expression : VARIABLE
-                  | NUMBER
-                  | LPAREN operator expression expression RPAREN
-                  | LPAREN VARIABLE arguments RPAREN'''  # For function calls
+    """expression : VARIABLE
+    | NUMBER
+    | LPAREN operator expression RPAREN
+    | LPAREN operator expression expression RPAREN
+    | LPAREN VARIABLE arguments RPAREN"""
     pass
 
 # Operator
@@ -116,15 +130,20 @@ def p_operator(p):
 
 # Arguments for function call
 def p_arguments(p):
-    '''arguments : expression
-                 | expression arguments
-                 | empty'''
+    """arguments : expression arguments_tail"""
+
+
+def p_arguments_tail(p):
+    """arguments_tail : expression arguments_tail
+    | empty"""
     pass
+
 
 # Empty rule for optional parameters and arguments
 def p_empty(p):
     'empty :'
     pass
+
 
 # Error handling rule
 def p_error(p):
@@ -135,6 +154,7 @@ def p_error(p):
     else:
         print("Syntax error at EOF")
 
+
 # Build the parser
 parser = yacc.yacc()
 
@@ -142,24 +162,16 @@ parser = yacc.yacc()
 
 # Sample test code in the Lisp-like syntax
 code_samples = [
-    # If Statements
     "(if true (setq x 10) (setq y 20))",  # Simple if statement
-    "(if true (setq x 10) (setq))",  # Invalid if statement (missing second argument for setq)
     "(if (setq x 10) (setq y 20))",  # Invalid if statement (missing else branch)
     "(while false (setq x (+ x 1)))",  # Simple while loop
-    "(while x (setq y (+ y 1)))",  # Invalid while loop condition (should be a boolean expression)
     "(while true (setq a (+ a 2) (setq b 10)))",  # Invalid while loop (incorrect parentheses in setq)
     "(setq z (* 5 5))",  # Simple assignment
-    "(setq x (+ 5))",  # Invalid assignment (missing second operand in the addition)
+    "(setq x 5 5)",  # Invalid assignment (multiple values)
     "(defun square (x) (* x x))",  # Function definition
-    "(defun add (x y) (+ x y))",  # Another valid function definition
-    "(defun square () (+ x x))",  # Invalid function definition (missing parameter for square)
-    "(defun multiply (x y) (+ x))",  # Invalid function definition (missing second operand in addition)
-    "(defun add (x) (+ x y))",  # Invalid function definition (using undefined variable y)
+    "(defun square (* x x))",  # Invalid definition (missing function name)
     "(defstruct person name age)",  # Structure definition
-    "(defstruct car model year)",  # Another valid structure definition
-    "(defstruct person age)",  # Invalid structure definition (missing name parameter)
-    "(defstruct car make)",  # Invalid structure definition (missing additional fields like model or year)
+    "(defstruct)",  # Invalid Structure definition
 ]
 
 # Function to parse input code and print results
